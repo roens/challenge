@@ -27,10 +27,23 @@ curr_rel=( $(cat ./release.txt) )
 curr_tag=( $(git describe --abbrev=0 --tags) )
 IFS=$OIFS
 
+# Increment the patch only if latest commit is new
 
-old_sub=${curr_tag[3]}
-#new_sub=$(( old_sub += 1 ))
-new_sub=$(( curr_tag[3] += 1 ))
-desired_tag="${curr_rel[0]}.${curr_rel[1]}.${new_sub}"
+old_patch=${curr_tag[3]}
+new_patch=$(( curr_tag[3] += 1 ))
+desired_tag="${curr_rel[0]}.${curr_rel[1]}.${new_patch}"
 echo "Old version tag: ${curr_tag[0]}.${curr_tag[1]}.${curr_tag[2]}"
 echo "New version tag: ${desired_tag}"
+echo "Releasing ${desired_tag} to  ${release_env}"
+
+# Get the current branch name
+curr_git_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Switch to the desired release branch
+git checkout ${release_env}
+
+# Merge that current branch into the release branch
+git merge ${curr_git_branch}
+
+# Set the new version tag
+git tag -a ${desired_tag}
